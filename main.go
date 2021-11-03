@@ -26,8 +26,8 @@ type Download struct {
 func main() {
 	startTime := time.Now()
 	d := Download{
-		Url:           "https://drive.google.com/uc?export=download&id=1ShtjiHZWFeH--gJyMhfYBvklEG4Auu2S",
-		TargetPath:    "rdfinale.pdf",
+		Url:           "https://www.dropbox.com/s/f63i7s11ydm2cu6/542.Carousel1-potassium-1024w-1366h%402x~ipad.jpg?dl=0",
+		TargetPath:    "ipadwallpaper.jpg",
 		TotalSections: 10,
 	}
 
@@ -41,6 +41,17 @@ func main() {
 
 func (d Download) Do() error {
 	fmt.Println("Making connection...")
+
+	r, err := d.getNewRequest("HEAD")
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Status %v", resp.StatusCode)
+
 	return nil
 }
 
