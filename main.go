@@ -93,11 +93,18 @@ func (d Download) Do() error {
 	fmt.Println(sections)
 
 	for i, s := range sections {
-		//Synchronous downloading of sections
-		err = d.downloadSection(i, s)
-		if err != nil {
-			return err
-		}
+		//Async downloading of sections (Concurrent)
+
+		index := i
+		section := s
+		go func() {
+			//the index and the section vals might get changed due to the concurrent nature of the run
+			//therefore we need to store the values in new vars
+			err = d.downloadSection(index, section)
+			if err != nil {
+				panic(err)
+			}
+		}()
 	}
 
 	return nil
