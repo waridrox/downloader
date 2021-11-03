@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -92,20 +93,23 @@ func (d Download) Do() error {
 
 	fmt.Println(sections)
 
+	var wg sync.WaitGroup //wait till the loop has executed fully (used for async)
 	for i, s := range sections {
 		//Async downloading of sections (Concurrent)
-
+		wg.Add(1) //increment on each section
 		index := i
 		section := s
 		go func() {
 			//the index and the section vals might get changed due to the concurrent nature of the run
 			//therefore we need to store the values in new vars
+			defer wg.Done() //will be called at the end of the loop iteration
 			err = d.downloadSection(index, section)
 			if err != nil {
 				panic(err)
 			}
 		}()
 	}
+	wg.Wait()
 
 	return nil
 }
