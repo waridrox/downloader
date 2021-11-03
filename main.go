@@ -3,6 +3,7 @@ package main
 import (
 	// "bufio"
 	"fmt"
+	"net/http"
 
 	// "go/format"
 	"log"
@@ -41,4 +42,18 @@ func main() {
 func (d Download) Do() error {
 	fmt.Println("Making connection...")
 	return nil
+}
+
+//Get a new http request
+func (d Download) getNewRequest(method string) (*http.Request, error) {
+	r, err := http.NewRequest(
+		method,
+		d.Url,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	r.Header.Set("User-Agent", "Concurrent Download Manager") //key val pair
+	return r, nil
 }
