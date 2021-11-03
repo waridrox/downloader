@@ -24,19 +24,30 @@ type Download struct {
 }
 
 func main() {
-	startTime := time.Now()
+	var downloadURL string
+	var fileName string
+	fmt.Println("Enter the URL of the file to download: ")
+	fmt.Scanln(&downloadURL)
+	fmt.Println("Enter the filename to be saved after downloading with extension (example - .png): ")
+	fmt.Scanln(&fileName)
+
+	// Example file link and name: Hubble-deep-field image (53MB)
+	// downloadURL - "https://live.staticflickr.com/65535/51218566742_aaa1a9190d_o_d.jpg"
+	// TargetPath - "hubble-deep-field-full-res.jpg"
+
 	d := Download{
-		Url:           "https://live.staticflickr.com/65535/51218566742_aaa1a9190d_o_d.jpg",
-		TargetPath:    "hubble-deep-field-full-res.jpg",
+		Url:           downloadURL,
+		TargetPath:    fileName,
 		TotalSections: 10,
 	}
+	startTime := time.Now()
 
 	err := d.Do()
 	if err != nil {
 		log.Fatalf("Error occured while downloading the file: %s\n", err)
 	}
 	fmt.Printf("Download completed in %v seconds\n", time.Now().Sub(startTime).Seconds())
-	fmt.Printf("Welcome to the Download Manager\n")
+	fmt.Printf("Check the downloaded file in the project directory\n")
 }
 
 func (d Download) Do() error {
