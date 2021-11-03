@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -76,7 +78,7 @@ func (d Download) Do() error {
 			sections[i][0] = 0
 		} else {
 			//starting byte of remaining sections
-			sections[i][0] = sections[i-1][0] + 1 //start of the previous section + 1
+			sections[i][0] = sections[i-1][1] + 1 //start of the previous section + 1
 		}
 
 		if i < d.TotalSections-1 {
@@ -89,6 +91,14 @@ func (d Download) Do() error {
 	}
 
 	fmt.Println(sections)
+
+	for i, s := range sections {
+		//Synchronous downloading of sections
+		err = d.downloadSection(i, s)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -105,4 +115,32 @@ func (d Download) getNewRequest(method string) (*http.Request, error) {
 	}
 	r.Header.Set("User-Agent", "Concurrent Download Manager") //key val pair
 	return r, nil
+}
+
+//Get http request for each download section
+func (d Download) downloadSection(i int, s [2]int) error {
+	r, err := d.getNewRequest("GET")
+	if err != nil {
+		return err
+	}
+
+	//to get just the first 10 bytes of the file, set the range accordingly in the header of the get request, r.Header.Set("Range", "bytes=0-10")
+	r.Header.Set("Range", fmt.Sprintf("bytes=%v-%v", s[0], s[1])) //passing down the start and the end section
+
+	resp, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Downloaded %v bytes for section %v: %v\n", resp.Header.Get("Content-Length"), i, s)
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(fmt.Sprintf("section=%v.tmp", i), b, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
