@@ -58,6 +58,38 @@ func (d Download) Do() error {
 		return err
 	}
 	fmt.Printf("File size: %v bytes\n", size)
+
+	//Splitting the file into sections of equal length
+	// Example 50MB =>
+	// section 0 = from 0MB to 5MB
+	// section 1 = from 6MB to 11MB
+	// section 2 = from 12MB to 17MB... till section 10
+
+	//if file size is 100 bytes, section would be: [[0 10] [11 21] [22 32] [33 43] [44 54] [55 65] [66 76] [77 87] [88 98] [99 99]]
+	var sections = make([][2]int, d.TotalSections)
+	sectionSize := size / d.TotalSections
+	fmt.Printf("Each sub section of file: %v bytes\n", sectionSize)
+
+	for i := range sections {
+		if i == 0 {
+			//starting byte of other sections
+			sections[i][0] = 0
+		} else {
+			//starting byte of remaining sections
+			sections[i][0] = sections[i-1][0] + 1 //start of the previous section + 1
+		}
+
+		if i < d.TotalSections-1 {
+			//ending byte of other sections
+			sections[i][1] = sections[i][0] + sectionSize
+		} else {
+			//ending byte of other sections
+			sections[i][1] = size - 1
+		}
+	}
+
+	fmt.Println(sections)
+
 	return nil
 }
 
