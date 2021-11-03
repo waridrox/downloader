@@ -26,8 +26,8 @@ type Download struct {
 func main() {
 	startTime := time.Now()
 	d := Download{
-		Url:           "https://www.dropbox.com/s/f63i7s11ydm2cu6/542.Carousel1-potassium-1024w-1366h%402x~ipad.jpg?dl=1",
-		TargetPath:    "wallpaper.jpg",
+		Url:           "https://live.staticflickr.com/65535/51218566742_aaa1a9190d_o_d.jpg",
+		TargetPath:    "hubble-deep-field-full-res.jpg",
 		TotalSections: 10,
 	}
 
@@ -110,6 +110,10 @@ func (d Download) Do() error {
 		}()
 	}
 	wg.Wait()
+	err = d.mergeFiles(sections)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -152,6 +156,32 @@ func (d Download) downloadSection(i int, s [2]int) error {
 	err = ioutil.WriteFile(fmt.Sprintf("section=%v.tmp", i), b, os.ModePerm)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+//Merge tmp files to single file and delete tmp files
+func (d Download) mergeFiles(sections [][2]int) error {
+	f, err := os.OpenFile(d.TargetPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for i := range sections {
+		tmpFileName := fmt.Sprintf("section=%v.tmp", i)
+		b, err := ioutil.ReadFile(tmpFileName)
+		if err != nil {
+			return err
+		}
+		n, err := f.Write(b)
+		if err != nil {
+			return err
+		}
+		err = os.Remove(tmpFileName)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%v bytes merged\n", n)
 	}
 	return nil
 }
